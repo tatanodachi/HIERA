@@ -35,7 +35,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
-.app{display:grid;grid-template-rows:auto 1fr auto;height:100%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr auto;height:100%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
 /* top bar */
 .top{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding-block:14px 0;border-bottom:1px solid var(--stage-hair)}
@@ -130,11 +130,13 @@ td.r{text-align:right;font-variant-numeric:tabular-nums}
 .ph .gate{margin-top:6px;font-size:12.5px;color:var(--ink-2);font-style:italic}
 
 /* story rail */
-.rail{display:flex;align-items:center;gap:16px;padding-block:10px 14px;border-top:1px solid var(--stage-hair);flex-wrap:wrap}
+.rail{display:flex;align-items:center;gap:16px;padding-block:10px 14px;border-top:1px solid var(--stage-hair);background:var(--emerald)}
 .rail .nav{display:flex;gap:6px}
 .rail .nav button{background:none;border:1px solid var(--stage-hair);width:38px;height:32px;color:var(--on-stage)}
 .rail .nav button:hover{border-color:var(--gold);color:var(--gold)}
-.steps{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;align-items:center}
+.steps{display:flex;gap:2px;flex:1 1 0;min-width:0;overflow-x:auto;align-items:center;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.now{display:none}
 .steps button{flex:none;background:none;border:0;border-bottom:2px solid transparent;padding:4px 7px;font-size:12px;color:var(--on-stage-2);font-variant-numeric:tabular-nums}
 .steps button:hover{color:var(--on-stage)}
 .steps button.on{color:var(--on-stage);border-bottom-color:var(--gold);font-weight:700}
@@ -143,18 +145,52 @@ td.r{text-align:right;font-variant-numeric:tabular-nums}
 .foot{font-size:11.5px;color:var(--on-stage-2);margin:0;max-width:70ch}
 
 @media (max-width:980px){
-  .stage{grid-template-columns:minmax(0,1fr)}
-  .map{width:100%}
   .app{height:auto;min-height:100%}
+  .stage{grid-template-columns:minmax(0,1fr);gap:14px;padding-block:12px}
+  .map{width:100%}
+  .acts{margin-left:0;flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}
+  .acts::-webkit-scrollbar{display:none}
+  .acts button{flex:none}
+  .drawer{overflow:visible}
+  .d-body{overflow:visible}
+  /* bottom bar stays in reach of the thumb */
+  .rail{position:sticky;bottom:0;z-index:6;padding-bottom:max(12px,env(safe-area-inset-bottom,0px))}
 }
-@media (max-width:560px){
-  .hs{width:26px;height:26px}
+/* portrait tablets and phones: the map pins to the top while the notes scroll beneath it */
+@media (max-width:980px) and (orientation:portrait){
+  .mapwrap{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;align-self:start;background:var(--emerald);padding-block:8px 6px;margin-block:-8px 0}
+}
+@media (max-width:600px){
+  .top{gap:6px;padding-block:10px 0}
+  .brand{padding-bottom:4px;flex-wrap:wrap;row-gap:2px}
   .brand h1{font-size:20px}
-  .acts{margin-left:0}
-  .toggle{margin-left:0}
-  .d-head{padding:16px 16px 12px}
-  .d-body{padding:4px 16px 18px}
+  .brand span{font-size:11.5px}
+  .acts{gap:0 16px}
+  .acts button{padding:6px 0 10px;font-size:12.5px}
+  .hs{width:22px;height:22px}
+  .hs.dup{display:none}
+  .hs::after{inset:-4px;border-width:2px}
+  .map{outline-offset:3px}
+  .legend{gap:4px 12px;font-size:11.5px;padding-top:2px}
+  .legend .sw{width:10px;margin-right:5px}
+  .foot{display:none}
+  .kbd{display:none}
+  .legend{flex-wrap:nowrap}
+  .legend>span{white-space:nowrap}
+  .toggle button{padding:3px 8px;font-size:11.5px}
+  .d-head{padding:16px 16px 12px;column-gap:12px}
+  .d-title h2{font-size:19.5px}
+  .d-body{padding:2px 16px 18px}
   .numeral{font-size:36px}
+  .points li{font-size:15px;padding:10px 0}
+  .stat .v{font-size:21px}
+  .stats{column-gap:14px}
+  .ph{grid-template-columns:58px minmax(0,1fr)}
+  table{font-size:12.5px}
+  .steps{display:none}
+  .now{display:block;flex:1 1 0;min-width:0;font-size:12.5px;color:var(--on-stage);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rail .nav button{width:46px;height:40px}
+  .rail{gap:12px}
 }
 @media (prefers-reduced-motion:reduce){
   .hs.active::after{animation:none}
@@ -204,6 +240,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums}
   <footer class="rail">
     <div class="nav"><button id="prev" aria-label="Previous point">←</button><button id="next" aria-label="Next point">→</button></div>
     <div class="steps" id="steps"></div>
+    <span class="now" id="now"></span>
     <span class="pos" id="pos"></span>
   </footer>
 </div>
@@ -214,11 +251,11 @@ const L=(t,u)=>`<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
 
 /* Hotspot positions in px on the 1500×655 map */
 const SPOTS={
-  "1":[[526,155]], "2":[[662,170]], "3":[[838,212],[355,515]],
-  "4":[[617,385],[1055,373],[1158,352],[762,552],[1248,555]],
+  "1":[[526,155]], "2":[[662,170]], "3":[[355,515],[838,212]],
+  "4":[[1158,352],[617,385],[1055,373],[762,552],[1248,555]],
   "5":[[989,532]], "6":[[541,88]], "7":[[982,145]], "8":[[1018,597]],
   "9":[[971,271]], "10":[[977,387]], "11":[[544,326],[736,352]],
-  "12":[[790,236],[392,318],[928,357],[677,484]]
+  "12":[[392,318],[790,236],[928,357],[677,484]]
 };
 
 /* Content: each item is one stop in the story */
@@ -488,9 +525,9 @@ const map=$("#map"), hsWrap=$("#hotspots"), drawer=$("#drawer");
 /* hotspots */
 for(const [id,pts] of Object.entries(SPOTS)){
   const it=ITEMS[id];
-  pts.forEach(([x,y])=>{
+  pts.forEach(([x,y],k)=>{
     const b=document.createElement("button");
-    b.className="hs"; b.dataset.id=id;
+    b.className=k?"hs dup":"hs"; b.dataset.id=id;
     b.style.left=(x/1500*100)+"%"; b.style.top=(y/655*100)+"%";
     b.style.setProperty("--c",C[it.c]);
     b.setAttribute("aria-label",`${id} · ${it.label}`);
@@ -541,7 +578,8 @@ function render(id){
   drawer.querySelector(".d-body").scrollTop=0;
 }
 
-function go(i){
+const stacked=matchMedia("(max-width:980px)"), portrait=matchMedia("(max-width:980px) and (orientation:portrait)"), reduce=matchMedia("(prefers-reduced-motion:reduce)");
+function go(i,quiet){
   cur=Math.max(0,Math.min(ORDER.length-1,i));
   const id=ORDER[cur]; const it=ITEMS[id];
   render(id);
@@ -551,8 +589,15 @@ function go(i){
   if(it.kind==="spot") act.steps.forEach(s=>{ if(s!==id) document.querySelectorAll(`.hs[data-id="${s}"]`).forEach(h=>h.classList.add("related"));});
   document.querySelectorAll("#acts button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.act===act.id)));
   document.querySelectorAll("#steps button").forEach(b=>b.classList.toggle("on",b.dataset.id===id));
-  const on=stepsEl.querySelector("button.on"); if(on) on.scrollIntoView({block:"nearest",inline:"nearest"});
+  const on=stepsEl.querySelector("button.on");
+  if(on){const l=on.offsetLeft-stepsEl.offsetLeft, r=l+on.offsetWidth; if(l<stepsEl.scrollLeft||r>stepsEl.scrollLeft+stepsEl.clientWidth) stepsEl.scrollLeft=l-stepsEl.clientWidth/2+on.offsetWidth/2;}
   $("#pos").textContent=`${cur+1} / ${ORDER.length}`;
+  $("#now").textContent=it.kind==="spot"?`${id} · ${it.label}`:(it.badge||"");
+  if(!quiet && stacked.matches){
+    const pinned=portrait.matches?document.querySelector(".mapwrap").offsetHeight:0;
+    const y=drawer.getBoundingClientRect().top+window.scrollY-pinned-8;
+    if(Math.abs(window.scrollY-y)>40) window.scrollTo({top:Math.max(0,y),behavior:reduce.matches?"auto":"smooth"});
+  }
   try{localStorage.setItem("hiera-step",String(cur))}catch(e){}
 }
 
@@ -570,7 +615,15 @@ document.addEventListener("keydown",e=>{
 });
 
 let start=0; try{const s=parseInt(localStorage.getItem("hiera-step")||"0",10); if(!isNaN(s)) start=s;}catch(e){}
-go(start);
+go(start,true);
+
+/* swipe left or right on the notes to move through the story */
+let tx=null,ty=null;
+drawer.addEventListener("touchstart",e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;},{passive:true});
+drawer.addEventListener("touchend",e=>{
+  if(tx===null) return; const t=e.changedTouches[0]; const dx=t.clientX-tx, dy=t.clientY-ty; tx=null;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.6 && !e.target.closest(".tbl")) go(cur+(dx<0?1:-1));
+},{passive:true});
 </script>
 
 </body>
