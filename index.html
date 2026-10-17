@@ -25,6 +25,7 @@
   --loop:#3e8a5f;
   --card-w:clamp(360px,30vw,430px);
   --card-h:min(510px,calc(100dvh - 48px));
+  --strip-h:clamp(172px,21dvh,206px);
   --f-display:"Shippori Mincho B1","Hiragino Mincho ProN","Times New Roman",serif;
   --f-body:"Zen Kaku Gothic New","Hiragino Sans","Segoe UI",system-ui,sans-serif;
   color-scheme:dark;
@@ -38,7 +39,7 @@ button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;paddin
 
 /* stage */
 .stage{position:fixed;inset:0;display:grid;place-items:center;padding:52px max(16px,env(safe-area-inset-right,0px)) 44px max(16px,env(safe-area-inset-left,0px))}
-.map{position:relative;width:min(100%,calc((100dvh - 96px) * 2.29));aspect-ratio:1500/655;max-width:100%;outline:1px solid rgba(212,175,55,.5);outline-offset:6px;touch-action:manipulation}
+.map{position:relative;transition:width .35s;width:min(100%,calc((100dvh - 96px) * 2.29));aspect-ratio:1500/655;max-width:100%;outline:1px solid rgba(212,175,55,.5);outline-offset:6px;touch-action:manipulation}
 .map img{display:block;width:100%;height:100%;object-fit:cover;transition:filter .35s;user-select:none;-webkit-user-drag:none}
 body.open .map img{filter:brightness(.72) saturate(.92)}
 .zones{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
@@ -163,6 +164,77 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .c-head{padding:10px 16px 8px}.numeral{font-size:30px}.c-head h2{font-size:16.5px}
   .pts li{font-size:13.5px;padding:7px 0}
 }
+/* phasing: grey base map, phases coloured in as they are reached */
+body.phasing .map img{filter:grayscale(1) brightness(.5)}
+.phases{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .4s}
+body.phasing .phases{opacity:1}
+.ph{opacity:0;transition:opacity .6s}
+.ph.done{opacity:.6}
+.ph.now{opacity:1}
+.ph .ol{opacity:0;transition:opacity .4s}
+.ph.now .ol{opacity:1}
+.ph.done .ol{opacity:.3}
+.ph text{opacity:0;transition:opacity .4s}
+.ph.now text{opacity:1}
+.phl{font-family:var(--f-body);font-weight:700;font-size:24px;letter-spacing:.14em;fill:var(--paper);stroke:rgba(15,62,46,.92);stroke-width:7px;paint-order:stroke;stroke-linejoin:round}
+.ptag{font-family:var(--f-body);font-size:16px;font-weight:500;letter-spacing:.06em;fill:var(--gold);stroke:rgba(15,62,46,.92);stroke-width:6px;paint-order:stroke;stroke-linejoin:round}
+body.phasing .card{opacity:0!important;pointer-events:none!important}
+body.phasing .hs:not(.lit)::after{opacity:0}
+body.phasing .pin{opacity:0;pointer-events:none}
+
+/* caption strip, used only for Phasing */
+.strip{position:fixed;z-index:7;left:max(24px,env(safe-area-inset-left,0px));right:max(24px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));height:var(--strip-h);background:var(--paper);color:var(--charcoal);border-top:3px solid var(--gold);box-shadow:0 -10px 40px rgba(0,0,0,.28);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity .25s,transform .25s}
+body.phasing .strip{opacity:1;pointer-events:auto;transform:none}
+.s-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.75fr) minmax(0,1fr);gap:28px;padding:16px 26px 10px;min-height:0;overflow:auto}
+.s-ph{font-family:var(--f-display);font-weight:700;font-size:26px;color:var(--burgundy);line-height:1.15;margin-top:6px;font-variant-numeric:lining-nums}
+.s-name{font-family:var(--f-display);font-weight:700;font-size:19px;line-height:1.3;margin-top:2px}
+.s-pts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:18px;align-content:start}
+.s-pts li{font-size:15px;line-height:1.5;border-top:1px solid var(--hair);padding-top:9px}
+.s-gate p{margin:6px 0 0;font-size:14px;font-style:italic;color:#3d4441;line-height:1.45}
+.s-foot{display:flex;align-items:center;gap:14px;padding:8px 14px 10px 26px;border-top:1px solid var(--hair);min-width:0}
+.s-foot .stepper{flex:none}
+.tl{display:flex;align-items:center;flex:1;min-width:0;overflow:hidden}
+.tl button{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);white-space:nowrap;padding:4px 0}
+.tl button i{width:11px;height:11px;border-radius:50%;border:2px solid #b9c2be;background:var(--paper);flex:none;transition:all .25s}
+.tl button.done{color:var(--charcoal)}
+.tl button.done i{background:var(--burgundy);border-color:var(--burgundy)}
+.tl button.now{color:var(--charcoal);font-weight:700}
+.tl button.now i{width:15px;height:15px;border-color:var(--gold);background:var(--gold);box-shadow:0 0 0 4px rgba(212,175,55,.28)}
+.tl .bar{flex:1;height:2px;background:var(--hair);margin:0 10px;min-width:10px;transition:background .25s}
+.tl .bar.done{background:var(--burgundy)}
+.tl .sh{display:none}
+.s-foot .x{margin:0}
+@media (orientation:landscape) and (min-height:501px){
+  body.phasing .stage{place-items:start center;padding-bottom:calc(var(--strip-h) + 32px)}
+  body.phasing .map{width:min(100%,calc((100dvh - 52px - var(--strip-h) - 44px) * 2.29))}
+}
+@media (orientation:portrait){
+  .strip{left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));top:calc(58px + env(safe-area-inset-top,0px) + (100vw - 32px) / 2.29 + 24px);bottom:calc(10px + env(safe-area-inset-bottom,0px));height:auto}
+  .s-main{grid-template-columns:minmax(0,1fr);gap:12px;padding:14px 18px 8px;align-content:start}
+}
+@media (max-width:640px) and (orientation:portrait){
+  .s-pts{grid-template-columns:minmax(0,1fr);gap:0}
+  .s-pts li{font-size:14.5px;padding:8px 0}
+  .s-ph{font-size:22px}
+  .tl .lg{display:none}.tl .sh{display:inline}
+  .tl .bar{margin:0 5px;min-width:6px}
+  .tl button{gap:4px;font-size:12px}
+  .s-foot{padding:8px 8px 10px 14px;gap:6px}
+  .s-foot .stepper span{display:none}
+}
+@media (max-height:500px) and (orientation:landscape){
+  .strip{left:auto;right:max(12px,env(safe-area-inset-right,0px));top:44px;bottom:8px;height:auto;width:min(46vw,400px)}
+  .strip.left{right:auto;left:max(12px,env(safe-area-inset-left,0px))}
+  .s-main{grid-template-columns:minmax(0,1fr);gap:8px;padding:10px 16px 6px}
+  .s-pts{grid-template-columns:minmax(0,1fr);gap:0}
+  .s-pts li{font-size:13.5px;padding:6px 0}
+  .s-ph{font-size:19px}
+  .tl .lg{display:none}.tl .sh{display:inline}
+  .s-foot{padding:6px 8px 8px 14px;gap:6px}
+  .tl .bar{margin:0 5px;min-width:6px}
+  .tl button{gap:4px;font-size:12px}
+  .s-foot .stepper span{display:none}
+}
 @media (prefers-reduced-motion:reduce){
   .hs.on::after{animation:none}
   *{transition:none!important}
@@ -194,6 +266,7 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
         <text x="210" y="545" class="zl" fill="#D4AF37">HIERA LOOP · 3.7 km</text>
       </g>
     </svg>
+    <svg class="phases" viewBox="0 0 1500 655" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="7"/></filter><mask id="m-d" maskUnits="userSpaceOnUse" x="0" y="0" width="1500" height="655"><g filter="url(#soft)"><polygon points="405,118 600,118 735,148 748,202 640,208 432,190 398,160" fill="#fff"/><polygon points="888,585 1062,585 1066,646 884,646" fill="#fff"/></g></mask><mask id="m-p1" maskUnits="userSpaceOnUse" x="0" y="0" width="1500" height="655"><g filter="url(#soft)"><polygon points="790,192 880,185 962,232 1012,262 1008,482 962,497 932,470 930,362 886,252 790,234" fill="#fff"/><polygon points="392,318 432,250 430,186 788,233 886,253 928,357 736,350 544,324" fill="#fff"/></g></mask><mask id="m-p2" maskUnits="userSpaceOnUse" x="0" y="0" width="1500" height="655"><g filter="url(#soft)"><polygon points="1008,300 1130,298 1205,330 1205,452 1300,470 1302,612 1066,618 1062,585 958,585 955,500 1008,482" fill="#fff"/></g></mask><mask id="m-p3" maskUnits="userSpaceOnUse" x="0" y="0" width="1500" height="655"><g filter="url(#soft)"><polygon points="392,318 544,326 736,352 930,360 922,492 700,485 470,470 192,497" fill="#fff"/></g></mask><mask id="m-p4" maskUnits="userSpaceOnUse" x="0" y="0" width="1500" height="655"><g filter="url(#soft)"><polygon points="185,500 470,474 700,488 700,560 470,545 235,565" fill="#fff"/><polygon points="700,488 925,495 955,585 885,600 884,640 700,625" fill="#fff"/></g></mask></defs><g class="ph" data-k="0"><image class="phimg" x="0" y="0" width="1500" height="655" preserveAspectRatio="none" mask="url(#m-d)"/><g class="ol" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linejoin="round"><polygon points="405,118 600,118 735,148 748,202 640,208 432,190 398,160"/><polygon points="888,585 1062,585 1066,646 884,646"/></g><text class="phl" x="408" y="106">DELIVERED · 2022–26</text></g><g class="ph" data-k="1"><image class="phimg" x="0" y="0" width="1500" height="655" preserveAspectRatio="none" mask="url(#m-p1)"/><g class="ol" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linejoin="round"><polygon points="790,192 880,185 962,232 1012,262 1008,482 962,497 932,470 930,362 886,252 790,234"/><polygon points="392,318 432,250 430,186 788,233 886,253 928,357 736,350 544,324"/></g><text class="phl" x="540" y="295">PHASE 1 · 2027–28</text></g><g class="ph" data-k="2"><image class="phimg" x="0" y="0" width="1500" height="655" preserveAspectRatio="none" mask="url(#m-p2)"/><g class="ol" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linejoin="round"><polygon points="1008,300 1130,298 1205,330 1205,452 1300,470 1302,612 1066,618 1062,585 958,585 955,500 1008,482"/></g><text class="phl" x="1030" y="462">PHASE 2 · 2028–30</text></g><g class="ph" data-k="3"><image class="phimg" x="0" y="0" width="1500" height="655" preserveAspectRatio="none" mask="url(#m-p3)"/><g class="ol" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linejoin="round"><polygon points="392,318 544,326 736,352 930,360 922,492 700,485 470,470 192,497"/></g><text class="phl" x="400" y="440">PHASE 3 · 2030–32</text></g><g class="ph" data-k="4"><image class="phimg" x="0" y="0" width="1500" height="655" preserveAspectRatio="none" mask="url(#m-p4)"/><g class="ol" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linejoin="round"><polygon points="185,500 470,474 700,488 700,560 470,545 235,565"/><polygon points="700,488 925,495 955,585 885,600 884,640 700,625"/></g><text class="phl" x="470" y="612">PHASE 4 · 2032+</text></g><text class="ptag" x="18" y="638">Indicative phasing · my proposal</text></svg>
     <div id="spots"></div>
   </div>
 </main>
@@ -211,6 +284,8 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     <div class="stepper"><button id="prev" aria-label="Previous stop">‹</button><span id="pos"></span><button id="next" aria-label="Next stop">›</button></div>
   </footer>
 </article>
+
+<section class="strip" id="strip" aria-live="polite" aria-label="Phasing"></section>
 
 <script>
 const COL={gold:"var(--gold)",burgundy:"var(--burgundy)",loop:"var(--loop)",teal:"var(--teal)"};
@@ -353,18 +428,21 @@ market:{c:"gold",eye:"Context · Macro to micro",title:"Money is tighter, but HI
 
 phasing:{c:"burgundy",eye:"Plan · Gated phasing",title:"Each phase opens only when the last proves demand",
  pages:[
-  {lit:["8","9","10","3","2"],zone:"eki",html:`<div class="ph-yr">2027–28 · Prove the station</div>
-   <ul class="pts"><li>Station Homes batch 1 (~150) and Shophouses batch 1 (~60).</li><li>Water Front meanwhile uses; first lit loop segment; Welton and Wynyard keep selling.</li></ul>
-   <p class="gate">Gate: tap-ins toward 6,000/day · 70% of batch sold in 6 months · half of shophouses trading</p>`},
-  {lit:["5","4","10","2"],zone:"eki",html:`<div class="ph-yr">2028–30 · Anchor and densify</div>
-   <ul class="pts"><li>Station Plaza with a signed anchor; Lofts tower 1; rental block 1.</li><li>Station Homes batch 2. Dairyland opens end-2028.</li></ul>
-   <p class="gate">Gate: anchor signed · tower 60% pre-sold · rental 80% leased</p>`},
-  {lit:["1","11","12"],zone:"heart",html:`<div class="ph-yr">2030–32 · Premium upside</div>
-   <ul class="pts"><li>Lakefront Editions, capped at IDR 10B.</li><li>Remaining Welton and Wynyard pods; further Eki blocks.</li></ul>
-   <p class="gate">Gate: Heartland resale at or above launch · KEK ETKI jobs rising</p>`},
-  {lit:["4","5","1"],zone:"all",html:`<div class="ph-yr">2032+ · Complete and hold</div>
-   <ul class="pts"><li>Final pods and civic plots.</li><li>Stabilised plaza, rental and lifestyle centre held together.</li></ul>
-   <p class="gate">Exit or refinance the retained-asset portfolio</p>`}]},
+  {key:"Delivered",short:"Built",yrs:"2022–26",name:"What is already built",lit:["1","2","8"],
+   pts:["<b>Welton and Wynyard</b>: 573 homes handed over at point 1.","Sport &amp; Lifestyle Centre with KYZN; Jatake Station live since Jan 2026."],
+   gate:"Proof that HIERA sells and the station works."},
+  {key:"Phase 1",short:"P1",yrs:"2027–28",name:"Prove the station",lit:["9","10","3:1","12:1"],
+   pts:["Station Homes batch 1 (~150) and Shophouses (~60) on the station approach.","Heartland pods north of the green belt keep selling as the cash engine."],
+   gate:"Tap-ins toward 6,000/day · 70% of batch sold in 6 months · half of shophouses trading"},
+  {key:"Phase 2",short:"P2",yrs:"2028–30",name:"Anchor and densify",dock:"left",lit:["5","4","4:2"],
+   pts:["Station Plaza with a signed anchor; Lofts tower 1; rental block 1.","Station Homes batch 2. Dairyland opens end-2028."],
+   gate:"Anchor signed · tower 60% pre-sold · rental 80% leased"},
+  {key:"Phase 3",short:"P3",yrs:"2030–32",name:"Premium upside",lit:["11","11:1","4:1"],
+   pts:["Heartland pods south of the green belt.","Lakefront Editions, capped at IDR 10B; further Eki blocks."],
+   gate:"Heartland resale at or above launch · KEK ETKI jobs rising"},
+  {key:"Phase 4",short:"P4",yrs:"2032+",name:"Complete and hold",lit:["3","4:3"],
+   pts:["Final parcels: south-west shophouses and the last commercial block.","Plaza, rental and lifestyle centre held as one income portfolio."],
+   gate:"Exit or refinance the retained-asset portfolio."}]},
 
 partners:{c:"gold",eye:"Plan · Strategic partners",title:"Partners supply what the JV should not build alone",
  pages:[{pts:[
@@ -406,7 +484,8 @@ const ORDER=["thesis","market","8","6","7","1","2","11","12","9","10","3","5","4
 const GROUPS=[["Opening",["thesis","market"]],["Act I · Gateway",["8","6","7"]],["Act II · Heartland",["1","2","11","12"]],["Act III · HIERA Eki",["9","10","3"]],["Act IV · Destination",["5","4"]],["Plan",["phasing","partners","risks","close"]]];
 
 const $=s=>document.querySelector(s);
-const map=$("#map"),card=$("#card"),ln=$("#ln"),lc=$("#lc");
+const map=$("#map"),card=$("#card"),strip=$("#strip"),ln=$("#ln"),lc=$("#lc");
+{const im=$("#map img");const set=()=>document.querySelectorAll(".phimg").forEach(i=>i.setAttribute("href",im.currentSrc||im.src)); im.complete?set():im.addEventListener("load",set); set();}
 let cur=-1,page=0,anchorEl=null;
 
 /* build markers */
@@ -442,26 +521,32 @@ $("#bMenu").addEventListener("click",e=>{e.stopPropagation(); toggleMenu(menu.hi
 let zonesOn=false;
 function zoneClass(z){map.classList.remove("z-eki","z-heart","z-all"); if(z) map.classList.add("z-"+z);}
 $("#bZones").addEventListener("click",e=>{e.stopPropagation(); zonesOn=!zonesOn; $("#bZones").setAttribute("aria-pressed",String(zonesOn)); refreshZones();});
-function refreshZones(){const s=S[ORDER[cur]]; const pz=document.body.classList.contains("open")&&s&&s.pages[page].zone; zoneClass(zonesOn?"all":pz||null);}
+function refreshZones(){if(document.body.classList.contains("phasing")){zoneClass(null);return;} const s=S[ORDER[cur]]; const pz=document.body.classList.contains("open")&&s&&s.pages[page].zone; zoneClass(zonesOn?"all":pz||null);}
 
 function primaryAnchor(id){return document.querySelector(`.hs[data-id="${id}"]:not(.dup)`)||document.querySelector(`.pin[data-id="${id}"]`);}
 
 $("#cbody").addEventListener("scroll",e=>{const b=e.target;card.classList.toggle("scrolls",b.scrollTop+b.clientHeight<b.scrollHeight-4);});
-function open(i,el){
+function open(i,el,back){
   cur=(i+ORDER.length)%ORDER.length; page=0;
+  if(back&&ORDER[cur]==="phasing") page=S.phasing.pages.length-1;
   const id=ORDER[cur];
   anchorEl=el||primaryAnchor(id)||null;
   document.body.classList.add("open","used");
   render(); place();
 }
 function close(){
-  document.body.classList.remove("open"); anchorEl=null;
+  document.body.classList.remove("open","phasing"); anchorEl=null;
+  document.querySelectorAll(".ph").forEach(g=>g.classList.remove("done","now"));
   document.querySelectorAll(".hs,.pin").forEach(h=>h.classList.remove("on","lit"));
   refreshZones(); hideLine();
 }
 
 function render(){
   const id=ORDER[cur], s=S[id], pg=s.pages[page];
+  const isPh=id==="phasing";
+  document.body.classList.toggle("phasing",isPh);
+  if(isPh){renderStrip(); hideLine(); menu.querySelectorAll("button").forEach(b=>b.classList.toggle("cur",b.dataset.id===id)); return;}
+  document.querySelectorAll(".ph").forEach(g=>g.classList.remove("done","now"));
   card.style.setProperty("--c",COL[s.c]);
   const isSpot=!!SPOTS[id];
   $("#chead").className="c-head"+(isSpot?"":" solo");
@@ -485,19 +570,41 @@ function render(){
   refreshZones();
   menu.querySelectorAll("button").forEach(b=>b.classList.toggle("cur",b.dataset.id===id));
 }
+function renderStrip(){
+  const s=S.phasing, pg=s.pages[page], n=s.pages.length;
+  strip.innerHTML=`<div class="s-main">
+    <div class="s-head"><div class="eyebrow">${s.eye}</div><div class="s-ph">${pg.key} · ${pg.yrs}</div><div class="s-name">${pg.name}</div></div>
+    <ul class="s-pts">${pg.pts.map(p=>`<li>${p}</li>`).join("")}</ul>
+    <div class="s-gate"><div class="eyebrow">${page<n-1?"Gate to the next phase":"End state"}</div><p>${pg.gate}</p></div></div>
+   <div class="s-foot"><div class="tl">${s.pages.map((p,k)=>`${k?`<span class="bar ${k<=page?"done":""}"></span>`:""}<button data-k="${k}" class="${k<page?"done":k===page?"now":""}" aria-label="${p.key} ${p.yrs}"><i></i><span class="lg">${p.key}</span><span class="sh">${p.short}</span></button>`).join("")}</div>
+    <div class="stepper"><button data-nav="-1" aria-label="Previous stop">‹</button><span>${cur+1} / ${ORDER.length}</span><button data-nav="1" aria-label="Next stop">›</button></div>
+    <button class="x" data-close aria-label="Close">×</button></div>`;
+  strip.classList.toggle("left",pg.dock==="left");
+  document.querySelectorAll(".ph").forEach(g=>{const k=+g.dataset.k; g.classList.toggle("done",k<page); g.classList.toggle("now",k===page);});
+  document.querySelectorAll(".hs,.pin").forEach(h=>{h.classList.toggle("on",h.dataset.id==="phasing");h.classList.remove("lit");});
+  pg.lit.forEach(l=>{const [lid,nth]=l.split(":"); const all=document.querySelectorAll(`.hs[data-id="${lid}"]`); const el=all[nth?+nth:0]; if(el) el.classList.add("lit");});
+  zoneClass(null);
+}
+strip.addEventListener("click",e=>{
+  const k=e.target.closest(".tl button"); if(k){page=+k.dataset.k; render(); return;}
+  const nv=e.target.closest("[data-nav]"); if(nv){open(cur+(+nv.dataset.nav)); return;}
+  if(e.target.closest("[data-close]")) close();
+});
+function step(dir){ if(!flipPage(dir)) open(cur+dir, null, dir<0); }
 function flipPage(dir){
   const s=S[ORDER[cur]], n=s.pages.length; if(n<=1) return false;
   const np=page+dir; if(np<0||np>=n) return false;
   page=np; render(); return true;
 }
 $("#flip").addEventListener("click",()=>{const n=S[ORDER[cur]].pages.length; page=page<n-1?page+1:0; render();});
-$("#prev").addEventListener("click",()=>open(cur-1));
+$("#prev").addEventListener("click",()=>open(cur-1,null,true));
 $("#next").addEventListener("click",()=>open(cur+1));
 
 /* dock the card on the side opposite its anchor, then draw the leader line */
 const portrait=matchMedia("(orientation:portrait)");
 function place(){
   if(!document.body.classList.contains("open")) return;
+  if(document.body.classList.contains("phasing")){hideLine();return;}
   if(!anchorEl){card.classList.add("right");card.classList.remove("left");hideLine();return;}
   const a=anchorEl.getBoundingClientRect(); const ax=a.left+a.width/2, ay=a.top+a.height/2;
   if(!portrait.matches){
@@ -519,12 +626,12 @@ card.addEventListener("transitionend",e=>{if(e.propertyName==="left"||e.property
 /* closing and keys */
 document.addEventListener("click",e=>{
   if(!menu.hidden&&!e.target.closest(".menu,#bMenu")) toggleMenu(false);
-  if(document.body.classList.contains("open")&&!e.target.closest(".card,.hs,.pin,.corner,.menu")) close();
+  if(document.body.classList.contains("open")&&!e.target.closest(".card,.strip,.hs,.pin,.corner,.menu")) close();
 });
 document.addEventListener("keydown",e=>{
-  const isOpen=document.body.classList.contains("open");
-  if(e.key==="ArrowRight"||e.key==="PageDown"){e.preventDefault(); open(isOpen?cur+1:Math.max(cur+1,0));}
-  else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault(); if(isOpen) open(cur-1);}
+  const isOpen=document.body.classList.contains("open"), ph=document.body.classList.contains("phasing");
+  if(e.key==="ArrowRight"||e.key==="PageDown"){e.preventDefault(); if(ph) step(1); else open(isOpen?cur+1:Math.max(cur+1,0));}
+  else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault(); if(ph) step(-1); else if(isOpen) open(cur-1,null,true);}
   else if(e.key==="ArrowDown"){if(isOpen){e.preventDefault(); flipPage(1);}}
   else if(e.key==="ArrowUp"){if(isOpen){e.preventDefault(); flipPage(-1);}}
   else if(e.key===" "){e.preventDefault(); if(!isOpen) open(Math.max(cur,0)); else if(!flipPage(1)) open(cur+1);}
@@ -538,7 +645,10 @@ document.addEventListener("keydown",e=>{
 let tx=null,ty=null;
 card.addEventListener("touchstart",e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;},{passive:true});
 card.addEventListener("touchend",e=>{if(tx===null) return; const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty; tx=null;
-  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6&&!e.target.closest("table")) open(cur+(dx<0?1:-1));},{passive:true});
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6&&!e.target.closest("table")) open(cur+(dx<0?1:-1),null,dx>0);},{passive:true});
+strip.addEventListener("touchstart",e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;},{passive:true});
+strip.addEventListener("touchend",e=>{if(tx===null) return; const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty; tx=null;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6) step(dx<0?1:-1);},{passive:true});
 </script>
 
 </body>
