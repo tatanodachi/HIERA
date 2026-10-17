@@ -586,6 +586,7 @@ function renderStrip(){
   zoneClass(null);
 }
 strip.addEventListener("click",e=>{
+  e.stopPropagation();
   const k=e.target.closest(".tl button"); if(k){page=+k.dataset.k; render(); return;}
   const nv=e.target.closest("[data-nav]"); if(nv){open(cur+(+nv.dataset.nav)); return;}
   if(e.target.closest("[data-close]")) close();
@@ -625,6 +626,7 @@ card.addEventListener("transitionend",e=>{if(e.propertyName==="left"||e.property
 
 /* closing and keys */
 document.addEventListener("click",e=>{
+  if(!e.target.isConnected) return; /* the clicked control was redrawn: never treat that as a tap on the map */
   if(!menu.hidden&&!e.target.closest(".menu,#bMenu")) toggleMenu(false);
   if(document.body.classList.contains("open")&&!e.target.closest(".card,.strip,.hs,.pin,.corner,.menu")) close();
 });
